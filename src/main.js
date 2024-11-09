@@ -68,7 +68,6 @@ form.addEventListener(EVENT_LISTENER_TYPE.SUBMIT, (e) => {
 
   pixabay.getData(input.value.trim(), page, per_page)
     .then(data => {
-      console.log(data);
       if (data[RESPONSE.HITS].length < 1) {
         showToast({
           method: TOAST_METHODS.WARNING, message: TOAST_MESSAGE.NO_IMAGES_MATCHING_SEARCH_QUERY,
