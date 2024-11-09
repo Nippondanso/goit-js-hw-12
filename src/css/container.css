@@ -3,12 +3,12 @@
   min-width: 320px;
   max-width: 375px;
   margin: 0 auto;
-  /*background-color: #646cff;*/
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   padding-top: 36px;
+  padding-bottom: 36px;
   gap: 32px;
 }
 /* Styles for Tablet devices */

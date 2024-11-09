@@ -68,6 +68,7 @@ form.addEventListener(EVENT_LISTENER_TYPE.SUBMIT, (e) => {
 
   pixabay.getData(input.value.trim(), page, per_page)
     .then(data => {
+      console.log(data);
       if (data[RESPONSE.HITS].length < 1) {
         showToast({
           method: TOAST_METHODS.WARNING, message: TOAST_MESSAGE.NO_IMAGES_MATCHING_SEARCH_QUERY,
@@ -95,6 +96,7 @@ form.addEventListener(EVENT_LISTENER_TYPE.SUBMIT, (e) => {
 btnMore.addEventListener(EVENT_LISTENER_TYPE.CLICK, (e) => {
   e.preventDefault();
   totalPages = Math.ceil(totalHits / per_page);
+  toggleLoader();
 
   pixabay.getData(prevQueryValue, page, per_page)
     .then(data => {
@@ -107,8 +109,16 @@ btnMore.addEventListener(EVENT_LISTENER_TYPE.CLICK, (e) => {
         btnMore.classList.add(CSS_STYLES.HIDDEN);
       }
       scrollWindow(elementHeight);
+    })
+    .catch(error => {
+      showToast({
+        method: TOAST_METHODS.ERROR, message: TOAST_MESSAGE.QUERY_FAILED,
+      });
+      throw new Error(error.message);
+    })
+    .finally(() => {
+      toggleLoader();
     });
-
 
 });
 
