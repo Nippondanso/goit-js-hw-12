@@ -1,12 +1,6 @@
 import 'izitoast/dist/css/iziToast.min.css';
-
-
-const API_KEY = '46865646-27ce533d0a2b530f03419db89';
-const URL = 'https://pixabay.com/api/';
-
-export function log() {
-  console.log(`pixabay.js connected`);
-}
+import axios from 'axios';
+import { QUERY_PARAMS } from '../constants.js';
 
 let params = {
   image_type: 'photo',
@@ -14,13 +8,18 @@ let params = {
   safesearch: 'true',
   min_width: '360',
   max_height: '200',
+  per_page: '200',
 };
 
-function createURL(value) {
+function createURL(value, page = 1, per_page = 15) {
+  params.page = String(page);
+  params.per_page = String(per_page);
+
   let searchParams = new URLSearchParams(params);
-  return `${URL}?key=${API_KEY}&q=${value}&${searchParams}`;
+  return `${QUERY_PARAMS.URL}?key=${QUERY_PARAMS.API_KEY}&q=${value}&${searchParams}`;
 }
 
-export function getData(value) {
-  return fetch(createURL(value), {});
+export async function getData(value, page, per_page) {
+  let response = await axios.get(createURL(value, page, per_page));
+  return response.data;
 }

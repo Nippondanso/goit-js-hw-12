@@ -1,61 +1,117 @@
 import iziToast from 'izitoast';
 import * as pixabay from './js/pixabay-api.js';
 import * as render from './js/render-functions.js';
+import {
+  CSS_STYLES,
+  EVENT_LISTENER_TYPE, FORM_ELEMENTS,
+  PAGE_ELEMENTS, RESPONSE,
+  SCROLL_BEHAVIOR,
+  TOAST_MESSAGE,
+  TOAST_METHODS,
+  TOAST_POSITIONS,
+} from './constants.js';
 
-const form = document.querySelector('form');
-const loader = document.querySelector('.loader');
-const gallery = document.querySelector('.gallery');
+const form = document.querySelector(PAGE_ELEMENTS.FORM);
+const loader = document.querySelector(PAGE_ELEMENTS.LOADER);
+const gallery = document.querySelector(PAGE_ELEMENTS.GALLERY);
+const btnMore = document.querySelector(PAGE_ELEMENTS.BTN_MORE);
+let page = 1;
+const per_page = 15;
+let totalPages = null;
+let prevQueryValue = null;
+let totalHits = null;
+let elementHeight = null;
+
 
 function toggleLoader() {
-  loader.classList.toggle('hidden');
+  if (page > 1) {
+    btnMore.classList.toggle(CSS_STYLES.HIDDEN);
+  }
+  loader.classList.toggle(CSS_STYLES.HIDDEN);
 }
 
-form.addEventListener('submit', (e) => {
-  const input = e.target.elements['search'];
+function showToast({
+                     position = TOAST_POSITIONS.TOP_RIGHT, method = TOAST_METHODS.INFO, message,
+                   }) {
+  iziToast[method]({
+    position: position, message: message,
+  });
+}
+
+function scrollWindow(height) {
+  window.scrollBy(
+    {
+      top: height * 2,
+      left: 0,
+      behavior: SCROLL_BEHAVIOR
+    },
+  );
+}
+
+
+form.addEventListener(EVENT_LISTENER_TYPE.SUBMIT, (e) => {
+  const input = e.target.elements[FORM_ELEMENTS.SEARCH];
+  prevQueryValue = input.value.trim();
 
   e.preventDefault();
   gallery.innerHTML = '';
   toggleLoader();
+  page = 1;
 
   if (input.value.trim().length === 0) {
     toggleLoader();
-    iziToast.warning({
-      position: 'topRight', message: 'Please enter a valid search!',
+    showToast({
+      message: TOAST_MESSAGE.VALID_SEARCH_QUERY, method: TOAST_METHODS.WARNING,
     });
-    return;
+    return false;
   }
 
-  pixabay.getData(input.value.trim())
-    .then((data) => {
-      if (!data.ok) {
-        throw new Error(data.statusText);
-      }
-      return data.json();
-    })
+  pixabay.getData(input.value.trim(), page, per_page)
     .then(data => {
-      if (data['hits'].length < 1) {
-        iziToast.warning({
-          position: 'topRight',
-          message: 'Sorry, there are no images matching your search query. Please try again!',
+      console.log(data);
+      if (data[RESPONSE.HITS].length < 1) {
+        showToast({
+          method: TOAST_METHODS.WARNING, message: TOAST_MESSAGE.NO_IMAGES_MATCHING_SEARCH_QUERY,
         });
       }
-      render.fillGalleryWithImages(data['hits']);
+      totalHits = data[RESPONSE.TOTAL_HITS];
+      render.fillGalleryWithImages(data[RESPONSE.HITS]);
+      page++;
     })
     .catch(error => {
-      iziToast.error({
-        position: 'topRight', message: 'Query failed!',
+      showToast({
+        method: TOAST_METHODS.ERROR, message: TOAST_MESSAGE.QUERY_FAILED,
       });
       throw new Error(error.message);
     })
     .finally(() => {
-        toggleLoader();
-      }
-    );
+      elementHeight = document.querySelector(PAGE_ELEMENTS.GALLERY_ITEM).getBoundingClientRect().height;
+      toggleLoader();
+    });
 
   form.reset();
 });
 
 
+btnMore.addEventListener(EVENT_LISTENER_TYPE.CLICK, (e) => {
+  e.preventDefault();
+  totalPages = Math.ceil(totalHits / per_page);
+
+  pixabay.getData(prevQueryValue, page, per_page)
+    .then(data => {
+      render.fillGalleryWithImages(data[RESPONSE.HITS]);
+      page++;
+      if (page > totalPages) {
+        showToast({
+          message: TOAST_MESSAGE.REACHED_END_OF_SEARCH_RESULTS,
+        });
+        btnMore.classList.add(CSS_STYLES.HIDDEN);
+      }
+      scrollWindow(elementHeight);
+    });
+
+
+});
 
 
 
