@@ -104,6 +104,8 @@ form.addEventListener(EVENT_LISTENER_TYPE.SUBMIT, (e) => {
       showToast({
         method: TOAST_METHODS.ERROR, message: TOAST_MESSAGE.QUERY_FAILED,
       });
+      hideLoader();
+      hideBtnMore();
       throw new Error(error.message);
     })
     .finally(() => {
@@ -134,6 +136,8 @@ btnMore.addEventListener(EVENT_LISTENER_TYPE.CLICK, (e) => {
       showToast({
         method: TOAST_METHODS.ERROR, message: TOAST_MESSAGE.QUERY_FAILED,
       });
+      hideLoader();
+      hideBtnMore();
       throw new Error(error.message);
     })
     .finally(() => {
